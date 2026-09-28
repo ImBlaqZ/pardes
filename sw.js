@@ -8,7 +8,7 @@
    at most API_MAX_ENTRIES answers and drops the oldest first. */
 'use strict';
 
-const BUILD = '24bf282ec1';
+const BUILD = '4890fe9218';
 const SHELL_CACHE = 'pardes-shell-' + BUILD;
 const API_CACHE = 'pardes-sefaria-v1';
 const API_PREFIX = 'https://www.sefaria.org/api/';
@@ -55,6 +55,9 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fromShell(INDEX_URL, request));
   } else if (SHELL_URLS.has(path)) {
     event.respondWith(fromShell(path, request));
+  } else if (request.mode === 'navigate') {
+    // any other address on this site: the network, and the app itself when offline
+    event.respondWith(fetch(request).catch(() => fromShell(INDEX_URL, request)));
   }
 });
 
@@ -76,7 +79,8 @@ async function networkFirst(event) {
   }
   if (response.ok) {
     event.waitUntil(remember(cache, request, response.clone()).catch(() => {}));
-  } else if (response.status >= 500) {
+  } else if (response.status >= 500 || response.status === 429) {
+    // a server error or Sefaria's rate limit: the last good answer, when there is one
     const copy = await cache.match(request, { ignoreVary: true });
     if (copy) return copy;
   }
