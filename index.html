@@ -3216,12 +3216,23 @@ table.about td p { margin: 0; }
     else window.addEventListener('resize', onResize);
   }
 
+  /* The Android app keeps its splash up until the page's first real view is in place, so the
+     reader never sees the bare floor while the built-in text unpacks. Not tied to animation
+     frames: behind the splash the app draws nothing, so a frame might never come. */
+  function tellReady() {
+    if (!NATIVE || typeof NATIVE.ready !== 'function') return;
+    setTimeout(() => {
+      try { NATIVE.ready(); } catch (err) { /* the splash has its own time limit */ }
+    }, 0);
+  }
+
   async function init() {
     try {
       DATA = await loadPacked('torah-data');
       EXPL = await loadPacked('explain-data');
     } catch (err) {
       put(main, h('div', { class: 'page' }, errorState('The built-in Torah text could not be opened', err.message)));
+      tellReady();
       return;
     }
     const last = store.get('last', null);
@@ -3243,6 +3254,7 @@ table.about td p { margin: 0; }
     syncToggle();
     if (!location.hash) history.replaceState(null, '', '#/home');
     route();
+    tellReady();
     loadThisWeek(false);
     (window.requestIdleCallback || ((fn) => setTimeout(fn, 300)))(() => {
       index();
