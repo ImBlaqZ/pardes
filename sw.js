@@ -11,7 +11,7 @@
    at most API_MAX_ENTRIES answers and drops the oldest first. */
 'use strict';
 
-const BUILD = '75b792e8fd';
+const BUILD = '0905ca81ad';
 const SHELL_CACHE = 'pardes-shell-' + BUILD;
 const API_CACHE = 'pardes-sefaria-v1';
 const API_PREFIX = 'https://www.sefaria.org/api/';
